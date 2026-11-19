@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stationery Cart</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  table { border-collapse: collapse; width: 100%; max-width: 720px; margin-bottom: 16px; }
+  th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+  button { padding: 4px 10px; cursor: pointer; }
+  .summary { max-width: 720px; margin-bottom: 32px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+let cart = [
+  { name: "Notebook", price: 120, qty: 1 },
+  { name: "Pen Pack", price: 60, qty: 1 },
+  { name: "Water Bottle", price: 350, qty: 1 }
+];
+
+function changeQty(index, delta) {
+  const nextQty = cart[index].qty + delta;
+  if (nextQty >= 1) {
+    cart[index].qty = nextQty;
+  }
+  renderAll();
+}
+
+function removeItem(index) {
+  cart.splice(index, 1);
+  renderAll();
+}
+
+function calculateTotals(items) {
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const discount = subtotal >= 1000 ? subtotal * 0.1 : 0;
+  const finalAmount = subtotal - discount;
+  return { subtotal, discount, finalAmount };
+}
+
+function buildCartSection(title, items, interactive) {
+  if (items.length === 0) {
+    return `<h2>${title}</h2><p>Your cart is empty.</p>`;
+  }
+
+  const rows = items.map((item, idx) => {
+    const rowTotal = item.price * item.qty;
+    const minusAttr = interactive ? `onclick="changeQty(${idx}, -1)"` : "disabled";
+    const plusAttr = interactive ? `onclick="changeQty(${idx}, 1)"` : "disabled";
+    const removeAttr = interactive ? `onclick="removeItem(${idx})"` : "disabled";
+    return `
+      <tr>
+        <td>${item.name}</td>
+        <td>Rs ${item.price}</td>
+        <td>
+          <button ${minusAttr}>-</button>
+          <span> ${item.qty} </span>
+          <button ${plusAttr}>+</button>
+        </td>
+        <td>Rs ${rowTotal}</td>
+        <td><button ${removeAttr}>Remove</button></td>
+      </tr>
+    `;
+  }).join("");
+
+  const { subtotal, discount, finalAmount } = calculateTotals(items);
+
+  return `
+    <h2>${title}</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Row Total</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="summary">
+      <p>Subtotal: Rs ${subtotal}</p>
+      <p>Discount (10% on Rs 1000+): Rs ${discount}</p>
+      <p><strong>Final Amount Payable: Rs ${finalAmount}</strong></p>
+    </div>
+  `;
+}
+
+function renderAll() {
+  const initialCart = [
+    { name: "Notebook", price: 120, qty: 1 },
+    { name: "Pen Pack", price: 60, qty: 1 },
+    { name: "Water Bottle", price: 350, qty: 1 }
+  ];
+
+  const updatedCart = [
+    { name: "Notebook", price: 120, qty: 3 },
+    { name: "Pen Pack", price: 60, qty: 2 },
+    { name: "Water Bottle", price: 350, qty: 2 }
+  ];
+
+  document.getElementById("app").innerHTML =
+    buildCartSection("Output 1: Starting Cart", initialCart, false) +
+    "<hr>" +
+    buildCartSection("Output 2: Updated Quantities (Notebook: 3, Pen Pack: 2, Water Bottle: 2)", updatedCart, false) +
+    "<hr>" +
+    buildCartSection("Live Interactive Cart", cart, true);
+}
+
+renderAll();
+</script>
+</body>
+</html>
